@@ -1,3 +1,12 @@
+# Terraform 
+terraform {
+  backend "s3" {
+    bucket = "mago-webhook-tf-state"
+    key    = "prod/terraform.tfstate"
+    region = "eu-west-3"
+  }
+}
+
 # 1. Provider Konfiguration (Paris Region)
 provider "aws" {
   region = "eu-west-3"
