@@ -6,28 +6,22 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
-    # Raw Payload Logging (Observability)
+    # 1. Alles loggen (Observability)
     raw_payload = event.get('body', '{}')
-    logger.info(f"RAW_PAYLOAD: {raw_payload}")
+    logger.info(f"WEBHOOK_DATA: {raw_payload}")
 
     try:
-        # JSON Parsing (Deserialization)
-        data = json.loads(raw_payload)
+        # 2. Validierung (Check if it's valid JSON)
+        json.loads(raw_payload)
         
-        # Attribute Extraction (Logic)
-        cp_id = data.get('chargePointId', 'unknown')
-        logger.info(f"CHARGE_POINT_ID: {cp_id}")
-        
-        # API Response (Success)
         return {
-            'statusCode': 200,
-            'body': json.dumps({'status': 'processed'})
+            'statusCode': 200, 
+            'body': json.dumps({'status': 'received'})
         }
-        
     except Exception as e:
-        # Error Handling (Exception Management)
-        logger.error(f"PARSE_ERROR: {str(e)}")
+        # 3. Fehler-Logging
+        logger.error(f"INVALID_JSON: {str(e)}")
         return {
             'statusCode': 400, 
-            'body': json.dumps({'error': 'invalid_json'})
+            'body': json.dumps({'error': 'invalid_json_format'})
         }
