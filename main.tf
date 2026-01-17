@@ -14,7 +14,7 @@ data "archive_file" "lambda_zip" {
 # 3. IAM Rolle für die Lambda-Funktion
 # Das ist die "Erlaubnis" für Lambda, als AWS-Dienst zu agieren
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "monta_webhook_role_yourname" # Hier kannst du dein Kürzel anhängen
+  name = "monta_webhook_role_mago" # Hier kannst du dein Kürzel anhängen
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
