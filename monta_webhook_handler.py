@@ -1,34 +1,49 @@
 import json
 import logging
+import boto3
+import uuid
+
+# 1. DynamoDB initialisieren (außerhalb des Handlers)
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('monta_webhook_events')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
-    # 1. Body holen
     raw_payload = event.get('body', '{}')
 
     try:
-        # 2. In Dictionary umwandeln
         body_dict = json.loads(raw_payload)
         
-        # 3. Strukturiert loggen (DAS IST DER ENTSCHEIDENDE TEIL)
-        # Wir packen alles in ein Dictionary und dumpen es als JSON
+        # Dein strukturiertes Logging behalten wir bei
         log_entry = {
             "type": "WEBHOOK_DATA",
             "content": body_dict
         }
         print(json.dumps(log_entry)) 
 
+        # 2. NEU: In DynamoDB speichern
+        webhook_id = str(uuid.uuid4())
+        table.put_item(
+            Item={
+                'id': webhook_id,
+                'payload': body_dict,
+                'request_id': context.aws_request_id
+            }
+        )
+
         return {
             'statusCode': 200, 
-            'body': json.dumps({'status': 'received'})
+            'body': json.dumps({
+                'status': 'received_and_stored',
+                'id': webhook_id
+            })
         }
 
     except Exception as e:
-        # Fehler ebenfalls strukturiert loggen
         error_log = {
-            "type": "INVALID_JSON",
+            "type": "ERROR",
             "error": str(e),
             "raw": raw_payload
         }
@@ -36,5 +51,5 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 400, 
-            'body': json.dumps({'error': 'invalid_json_format'})
+            'body': json.dumps({'error': 'processing_failed'})
         }
