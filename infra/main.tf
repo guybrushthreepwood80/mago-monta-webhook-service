@@ -8,6 +8,7 @@ terraform {
     bucket = "mago-webhook-tf-state"
     key    = "prod/terraform.tfstate"
     region = "eu-west-3"
+    encrypt = true
   }
 
   # Specify and lock provider versions for stability
@@ -71,7 +72,9 @@ resource "aws_lambda_function" "webhook_lambda" {
 
   handler = "monta_webhook_handler.lambda_handler"
 
-  runtime          = "python3.9"
+
+  runtime          = "python3.12"
+
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   tags = {
