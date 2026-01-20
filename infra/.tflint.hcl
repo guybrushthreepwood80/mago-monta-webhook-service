@@ -1,23 +1,24 @@
-# Load the AWS ruleset plugin to check cloud-specific best practices
+# Load the AWS ruleset plugin
 plugin "aws" {
-    # Activate the AWS ruleset for TFLint
     enabled = true
-    # Use the official AWS plugin source
-    source  = "github.com/terraform-linters/tflint-ruleset-aws"
-    # Pin to a stable version of the plugin
     version = "0.32.0"
+    source  = "github.com/terraform-linters/tflint-ruleset-aws"
 }
 
-# Define the general linter behavior and environment
+# Global TFLint configuration
 config {
-    # Check compatibility with your specific Terraform version
-    terraform_version = "1.5.0"
-    # Use compact output for better readability in GitHub Actions
     format = "compact"
 }
 
-# Enforce versioning on S3 buckets to prevent data loss (e.g., in your State-Bucket)
+# Version-specific checks must be in this block
+terraform {
+    enabled = true
+    preset  = "recommended"
+    # Moved terraform_version here
+    terraform_version = "1.5.0"
+}
+
+# S3 security rule
 rule "aws_s3_bucket_versioning" {
-    # Flag any S3 bucket that does not have versioning enabled
     enabled = true
 }
