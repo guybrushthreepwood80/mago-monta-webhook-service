@@ -8,6 +8,7 @@ terraform {
     bucket = "mago-webhook-tf-state"
     key    = "prod/terraform.tfstate"
     region = "eu-west-3"
+    encrypt = true
   }
 
   # Specify and lock provider versions for stability
