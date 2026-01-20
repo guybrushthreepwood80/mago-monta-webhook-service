@@ -1,5 +1,7 @@
 # Main entry point for our infrastructure automation
 name: 'Infra Governance & Deployment'
+permissions:
+  contents: read
 
 # Define triggers for specific branches and pull requests
 on:
