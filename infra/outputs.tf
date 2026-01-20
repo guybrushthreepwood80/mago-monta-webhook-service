@@ -1,11 +1,13 @@
 # infra/outputs.tf
 
 output "webhook_url" {
-  value       = "${aws_apigatewayv2_stage.default.invoke_url}/webhook"
-  description = "URL for Webhook Endpoint"
+  # Deine Ressource heißt "lambda_stage", nicht "default"
+  value       = "${aws_apigatewayv2_stage.lambda_stage.invoke_url}/webhook"
+  description = "Die URL für das Monta Webhook-Dashboard."
 }
 
 output "dynamodb_table_name" {
-  value       = aws_dynamodb_table.webhook_events.name
-  description = "Name of DynamoDB Table for storing webhook events"
+  # Deine Ressource heißt "monta_webhooks", nicht "webhook_events"
+  value       = aws_dynamodb_table.monta_webhooks.name
+  description = "Der Name der DynamoDB Tabelle."
 }
