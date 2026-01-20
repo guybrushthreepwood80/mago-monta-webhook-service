@@ -51,18 +51,18 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 # 5. Die Lambda Funktion
 resource "aws_lambda_function" "webhook_lambda" {
-  filename         = "monta_webhook_handler.zip"
-  function_name    = "MontaWebhookHandler"
-  role             = aws_iam_role.iam_for_lambda.arn
-  
+  filename      = "monta_webhook_handler.zip"
+  function_name = "MontaWebhookHandler"
+  role          = aws_iam_role.iam_for_lambda.arn
+
   # EXAKT: Dateiname (ohne .py) PUNKT Funktionsname
-  handler          = "monta_webhook_handler.lambda_handler"
-  
+  handler = "monta_webhook_handler.lambda_handler"
+
   runtime          = "python3.9"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   tags = {
-    Owner = "Martin Goth"
+    Owner   = "Martin Goth"
     Project = "Monta-Webhook-Integration"
   }
 }
@@ -71,7 +71,7 @@ resource "aws_lambda_function" "webhook_lambda" {
 resource "aws_apigatewayv2_api" "lambda_api" {
   name          = "monta-webhook-api"
   protocol_type = "HTTP"
-  
+
   tags = {
     Owner = "Martin Goth"
   }
@@ -104,7 +104,7 @@ resource "aws_lambda_permission" "api_gw" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.webhook_lambda.function_name
   principal     = "apigateway.amazonaws.com"
-  
+
   # Zugriff einschränken auf diese spezifische API
   source_arn = "${aws_apigatewayv2_api.lambda_api.execution_arn}/*/*"
 }
