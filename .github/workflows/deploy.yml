@@ -70,7 +70,7 @@ jobs:
 
       # Download providers and initialize backend state
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -upgrade
 
       # Check if configuration is syntactically correct
       - name: Terraform Validate
