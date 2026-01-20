@@ -1,0 +1,10 @@
+# Exclude local Terraform files
+.terraform/
+.terraform.lock.hcl
+
+# Exclude Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Exclude Lambda archive files
+*.zip

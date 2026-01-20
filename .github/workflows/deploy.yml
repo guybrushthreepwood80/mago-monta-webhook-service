@@ -1,21 +1,66 @@
-name: Deploy Infrastructure
+# Main entry point for our infrastructure automation
+name: 'Infra Governance & Deployment'
 
+# Define triggers for specific branches and pull requests
 on:
   push:
+    branches: [ main, staging ]
+  pull_request:
     branches: [ main ]
 
+# Group of tasks that run on virtual machines
 jobs:
-  terraform:
-    name: 'Terraform Deploy'
+  # First isolated job to verify code quality
+  lint:
+    # Visible name in the GitHub UI
+    name: 'Lint'
+    # Use the latest Ubuntu runner provided by GitHub
     runs-on: ubuntu-latest
-    
+    # Set default execution path to the infrastructure folder
+    defaults:
+      run:
+        working-directory: infra
+    # Sequential list of actions to perform
     steps:
+      # Download the repository content to the runner
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Install the TFLint binary on the runner
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      # Download plugins defined in .tflint.hcl
+      - name: Init TFLint
+        run: tflint --init
+
+      # Scan code for best practices and errors
+      - name: Run TFLint
+        run: tflint -f compact
+
+  # Second job for the actual infrastructure lifecycle
+  terraform:
+    # Friendly name for the deployment job
+    name: 'Terraform'
+    # Wait for the Lint job to finish successfully
+    needs: lint
+    # Run on a fresh Ubuntu virtual machine
+    runs-on: ubuntu-latest
+    # Execute all commands inside the infra directory
+    defaults:
+      run:
+        working-directory: infra
+    # Steps for initializing and applying Terraform
+    steps:
+      # Clone the code into the workspace
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Install the specific Terraform CLI version
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # Authenticate with AWS using repository secrets
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -23,8 +68,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-3
 
+      # Download providers and initialize backend state
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -upgrade
 
+      # Check if configuration is syntactically correct
+      - name: Terraform Validate
+        run: terraform validate
+
+      # Create an execution plan showing pending changes
+      - name: Terraform Plan
+        run: terraform plan -no-color
+
+      # Apply changes only on final merge to main
       - name: Terraform Apply
+        # Guard condition to prevent accidental production deploys
+        if: github.ref_name == 'main' && github.event_name == 'push'
         run: terraform apply -auto-approve
