@@ -17,7 +17,7 @@ provider "aws" {
 # Terraform erstellt hier automatisch das ZIP-Paket für dich
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = "monta_webhook_handler.py"
+  source_file = "../src/monta_webhook_handler.py"
   output_path = "monta_webhook_handler.zip"
 }
 
