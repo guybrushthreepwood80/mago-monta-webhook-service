@@ -16,9 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      
       - name: Send Email for Push Event
         uses: dawidd6/action-send-mail@v3
         with:
@@ -35,7 +32,7 @@ jobs:
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Actor: ${{ github.actor }}
-            Commit Message: ${{ github.event.head_commit.message }}
+            Commit Message: ${{ github.event.head_commit.message || 'N/A' }}
             
             Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
   
@@ -45,9 +42,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      
       - name: Send Email for PR Event
         uses: dawidd6/action-send-mail@v3
         with:
