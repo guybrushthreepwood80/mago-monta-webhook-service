@@ -37,8 +37,9 @@ jobs:
 
       - name: Run Unit Tests
         run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
           pytest --version
-          pytest ./src
+          pytest ./tests
           echo "Application logic validated successfully."
 
   # 2. Job: Validate Infrastructure Best Practices
