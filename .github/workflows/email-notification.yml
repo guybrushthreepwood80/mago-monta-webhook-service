@@ -10,36 +10,61 @@ on:
     branches: [main]
 
 jobs:
-  send-email:
-    name: 'Send Email Notification'
+  send-push-notification:
+    name: 'Send Push Notification'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      - name: Send Email Notification
+      - name: Send Email for Push Event
         uses: dawidd6/action-send-mail@v3
         with:
-          # SMTP server configuration
           server_address: smtp.gmail.com
           server_port: 587
-          # Use GitHub secrets for SMTP credentials
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          # Email details
-          subject: |
-            ${{ github.event_name == 'push' && format('Push to {0} in {1}', github.ref_name, github.repository) || format('PR #{0} opened for {1}', github.event.pull_request.number, github.repository) }}
+          subject: 'Push to ${{ github.ref_name }} in ${{ github.repository }}'
           to: goth.martin@gmail.com
-          from: GitHub Actions
-          # Email body with event details
+          from: ${{ secrets.EMAIL_USERNAME }}
           body: |
-            Event: ${{ github.event_name }}
+            Event: Push
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Actor: ${{ github.actor }}
+            Commit Message: ${{ github.event.head_commit.message }}
             
-            ${{ github.event_name == 'push' && format('Commit Message: {0}', github.event.head_commit.message) || format('Pull Request: {0}\nTitle: {1}\nURL: {2}', github.event.pull_request.number, github.event.pull_request.title, github.event.pull_request.html_url) }}
+            Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  
+  send-pr-notification:
+    name: 'Send PR Notification'
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Send Email for PR Event
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'PR #${{ github.event.pull_request.number }} opened for ${{ github.repository }}'
+          to: goth.martin@gmail.com
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: |
+            Event: Pull Request Opened
+            Repository: ${{ github.repository }}
+            Pull Request: #${{ github.event.pull_request.number }}
+            Title: ${{ github.event.pull_request.title }}
+            Author: ${{ github.event.pull_request.user.login }}
+            Branch: ${{ github.event.pull_request.head.ref }} -> ${{ github.event.pull_request.base.ref }}
             
+            PR URL: ${{ github.event.pull_request.html_url }}
             Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
