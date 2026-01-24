@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "dev" ]
 
+permissions:
+  contents: read
+
 jobs:
   # 1. Job: Validate Python Code Style, Syntax and Logic
   python-quality:
