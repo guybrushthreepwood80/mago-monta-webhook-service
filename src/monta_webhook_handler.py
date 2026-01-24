@@ -5,7 +5,7 @@ import uuid
 from decimal import Decimal
 
 # Initialize DynamoDB with explicit region for consistency
-dynamodb = boto3.resource('dynamodb', region_name='eu-west-3') [cite: 2026-01-20, 2026-01-25]
+dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')
 table = dynamodb.Table('monta_webhook_events')
 
 class DecimalEncoder(json.JSONEncoder):

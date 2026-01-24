@@ -4,7 +4,6 @@ from monta_webhook_handler import lambda_handler
 
 @patch('monta_webhook_handler.table')
 def test_lambda_handler_categorization(mock_table):
-    """Verify that the lambda_handler correctly categorizes a Monta charge event."""
     # Simulate a Monta webhook payload
     payload = {
         "object": "transaction",
