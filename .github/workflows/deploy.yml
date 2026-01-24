@@ -1,14 +1,14 @@
 # Main entry point for our infrastructure automation
-name: 'Test & Deployment'
-permissions:
-  contents: read
+
+name: 'Deployment & Testing'
+
 
 # Define triggers for specific branches and pull requests
 on:
   push:
     branches: [ main, staging ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, staging ]
 
 # Group of tasks that run on virtual machines
 jobs:
