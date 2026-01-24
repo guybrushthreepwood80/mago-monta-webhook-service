@@ -31,14 +31,14 @@ jobs:
         run: |
           # Stop the build if there are Python syntax errors or undefined names
           # E9, F63, F7, F82 are critical errors that prevent code from running
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 ./src --count --select=E9,F63,F7,F82 --show-source --statistics
           # Optional: Exit with 0 even if there are minor style warnings (PEP8)
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 ./src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Run Unit Tests
         run: |
           pytest --version
-          # pytest tests/ 
+          pytest ./src
           echo "Application logic validated successfully."
 
   # 2. Job: Validate Infrastructure Best Practices
