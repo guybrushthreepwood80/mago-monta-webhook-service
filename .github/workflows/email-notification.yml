@@ -1,0 +1,45 @@
+# Email notification workflow
+# Sends email notifications on push events and when PRs are opened to main
+name: 'Email Notification'
+
+# Trigger on push events and when pull requests are opened to main
+on:
+  push:
+  pull_request:
+    types: [opened]
+    branches: [main]
+
+jobs:
+  send-email:
+    name: 'Send Email Notification'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          # SMTP server configuration
+          server_address: smtp.gmail.com
+          server_port: 587
+          # Use GitHub secrets for SMTP credentials
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          # Email details
+          subject: |
+            ${{ github.event_name == 'push' && format('Push to {0} in {1}', github.ref_name, github.repository) || format('PR #{0} opened for {1}', github.event.pull_request.number, github.repository) }}
+          to: goth.martin@gmail.com
+          from: GitHub Actions
+          # Email body with event details
+          body: |
+            Event: ${{ github.event_name }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Actor: ${{ github.actor }}
+            
+            ${{ github.event_name == 'push' && format('Commit Message: {0}', github.event.head_commit.message) || format('Pull Request: {0}\nTitle: {1}\nURL: {2}', github.event.pull_request.number, github.event.pull_request.title, github.event.pull_request.html_url) }}
+            
+            Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
