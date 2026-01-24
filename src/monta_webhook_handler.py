@@ -26,7 +26,7 @@ def lambda_handler(event, context):
         body_dict = json.loads(raw_payload, parse_float=Decimal)
         
         # --- Dynamische Kategorisierung ---
-        if body_dict.get("identifikator") == "weather":
+        if body_dict.get("event") == "weather":
             event_category = "WEATHER_DATA"
         elif "entries" in body_dict and len(body_dict["entries"]) > 0:
             first_entry = body_dict["entries"][0]
