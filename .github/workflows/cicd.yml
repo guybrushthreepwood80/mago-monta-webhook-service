@@ -24,10 +24,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Cache Python Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install Dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip --no-cache-dir
+          pip install flake8 --no-cache-dir
       - name: Run Flake8 (Python)
         run: |
-          pip install flake8
-          # Check for syntax errors and PEP8 compliance
+          source venv/bin/activate
           flake8 ./src --count --select=E9,F63,F7,F82 --show-source --statistics
 
       # Terraform Linting (TFLint)
@@ -37,6 +49,8 @@ jobs:
         run: |
           tflint --init
           tflint -f compact --working-dir=infra
+      - name: Run Terraform Format Check
+        run: terraform fmt -check
 
   # 2. LOGIC TESTS (The "Showstopper" for the demo)
   logic-tests:
@@ -50,10 +64,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Cache Python Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install Dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip --no-cache-dir
+          pip install -r requirements.txt --no-cache-dir
       - name: Run Pytest
         run: |
-          pip install -r requirements.txt
-          # Set PYTHONPATH so tests can find sources in /src
+          source venv/bin/activate
           PYTHONPATH=./src pytest ./tests
 
   # 3. INFRASTRUCTURE & DEPLOYMENT (Path to Paris)
@@ -83,9 +109,17 @@ jobs:
         run: |
           terraform init -upgrade
           terraform validate
+      - name: Run Terraform Format Check
+        run: terraform fmt -check
 
       - name: Terraform Plan
-        run: terraform plan -no-color
+        run: terraform plan -no-color -out=infra/tfplan
+      - name: Save Terraform Plan
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan
+          path: infra/tfplan
 
       # Governance: Only apply on main branch during a push (merge)
       - name: Terraform Apply
