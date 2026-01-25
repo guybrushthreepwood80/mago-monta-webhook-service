@@ -118,7 +118,7 @@ jobs:
         run: terraform plan -no-color -out=infra/tfplan
       - name: Save Terraform Plan
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
           path: infra/tfplan
