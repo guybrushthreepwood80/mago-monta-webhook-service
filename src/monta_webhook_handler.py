@@ -4,12 +4,16 @@ import boto3
 import uuid
 from decimal import Decimal
 
-# 1. DynamoDB initialisieren
-dynamodb = boto3.resource('dynamodb')
+# Initialize DynamoDB with explicit region for consistency
+dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')
 table = dynamodb.Table('monta_webhook_events')
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+class DecimalEncoder(json.JSONEncoder):
+    """Helper class to convert Decimal types to float for JSON responses."""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super(DecimalEncoder, self).default(obj)
 
 # Hilfsklasse, um Decimal-Werte wieder in JSON für die Response umzuwandeln
 class DecimalEncoder(json.JSONEncoder):
@@ -19,61 +23,54 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(obj)
 
 def lambda_handler(event, context):
-    raw_payload = event.get('body', '{}')
-
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    
     try:
-        # WICHTIG: parse_float=Decimal löst das Problem mit den Float-Werten in DynamoDB
-        body_dict = json.loads(raw_payload, parse_float=Decimal)
+        # Load body and ensure it's a valid dictionary
+        raw_payload = event.get('body', '{}')
+        body_dict = json.loads(raw_payload)
         
-        # --- Dynamische Kategorisierung ---
-        if body_dict.get("identifikator") == "weather":
-            event_category = "WEATHER_DATA"
-        elif "entries" in body_dict and len(body_dict["entries"]) > 0:
-            first_entry = body_dict["entries"][0]
-            # Nimmt den entityType (z.B. charge) und macht MONTA_CHARGE daraus
-            etype = first_entry.get('entityType', 'generic')
-            event_category = f"MONTA_{etype.upper()}"
+        # Robust categorization logic [cite: 2026-01-25]
+        entries = body_dict.get("entries")
+        
+        if body_dict.get("object") == "charge-point":
+            event_category = "CHARGE_POINT"
+        # Validate that 'entries' is a non-empty list [cite: 2026-01-25]
+        elif isinstance(entries, list) and len(entries) > 0:
+            first_entry = entries[0]
+            # Ensure the first entry is a dictionary [cite: 2026-01-25]
+            if isinstance(first_entry, dict):
+                event_category = first_entry.get("entityType", "UNKNOWN_ENTRY_TYPE")
+            else:
+                event_category = "INVALID_ENTRY_FORMAT"
         else:
-            event_category = "UNKNOWN_WEBHOOK"
-        # ----------------------------------
-
-        # Logging mit dem Custom Encoder
-        log_entry = {
-            "type": "WEBHOOK_DATA",
-            "category": event_category,
-            "content": body_dict
+            event_category = "GENERIC_WEBHOOK"
+        
+        logger.info(f"Processing event. Category: {event_category}")
+        
+        # Prepare item for DynamoDB
+        db_item = {
+            'webhook_id': str(uuid.uuid4()),
+            'event_category': event_category,
+            'payload': body_dict
         }
-        print(json.dumps(log_entry, cls=DecimalEncoder)) 
-
-        # In DynamoDB speichern
-        webhook_id = str(uuid.uuid4())
-        table.put_item(
-            Item={
-                'id': webhook_id,
-                'category': event_category, # Deine neue Sortier-Spalte
-                'payload': body_dict,
-                'request_id': context.aws_request_id
-            }
-        )
-
-        return {
-            'statusCode': 200, 
-            'body': json.dumps({
-                'status': 'received_and_stored',
-                'id': webhook_id,
-                'category': event_category
-            })
-        }
-
-    except Exception as e:
-        error_log = {
-            "type": "ERROR",
-            "error": str(e),
-            "raw": raw_payload
-        }
-        print(json.dumps(error_log))
+        
+        # Store in DynamoDB
+        table.put_item(Item=db_item)
         
         return {
-            'statusCode': 400, 
+            'statusCode': 200,
+            'body': json.dumps({
+                'message': 'Webhook received and stored',
+                'id': db_item['webhook_id'],
+                'category': event_category
+            }, cls=DecimalEncoder)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}")
+        return {
+            'statusCode': 500,
             'body': json.dumps({'error': 'processing_failed', 'msg': str(e)})
         }
