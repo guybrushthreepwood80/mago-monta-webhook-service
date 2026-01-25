@@ -1,4 +1,4 @@
-name: 'End-to-End CI/CD Pipeline'
+name: 'CI/CD Pipeline'
 
 # Trigger for demo branches
 on:
@@ -47,8 +47,8 @@ jobs:
         uses: terraform-linters/setup-tflint@v4
       - name: Run TFLint
         run: |
-          tflint --init
-          tflint -f compact --working-dir=infra
+          tflint --init --chdir=infra
+          tflint -f compact --chdir=infra
       - name: Run Terraform Format Check
         run: terraform fmt -check
 
