@@ -1,0 +1,66 @@
+# Email notification workflow
+# Sends email notifications on push events and when PRs are opened to main
+name: 'Email Notification'
+
+# Trigger on push events and when pull requests are opened to main
+on:
+  push:
+  pull_request:
+    types: [opened]
+    branches: [main]
+
+jobs:
+  send-push-notification:
+    name: 'Send Push Notification'
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions: {}
+    
+    steps:
+      - name: Send Email for Push Event
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'Push to ${{ github.ref_name }} in ${{ github.repository }}'
+          to: goth.martin@gmail.com
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: |
+            Event: Push
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Actor: ${{ github.actor }}
+            Commit Message: ${{ github.event.head_commit.message || 'N/A' }}
+            
+            Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  
+  send-pr-notification:
+    name: 'Send PR Notification'
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions: {}
+    
+    steps:
+      - name: Send Email for PR Event
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'PR #${{ github.event.pull_request.number }} opened for ${{ github.repository }}'
+          to: goth.martin@gmail.com
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: |
+            Event: Pull Request Opened
+            Repository: ${{ github.repository }}
+            Pull Request: #${{ github.event.pull_request.number }}
+            Title: ${{ github.event.pull_request.title }}
+            Author: ${{ github.event.pull_request.user.login }}
+            Branch: ${{ github.event.pull_request.head.ref }} -> ${{ github.event.pull_request.base.ref }}
+            
+            PR URL: ${{ github.event.pull_request.html_url }}
+            Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
