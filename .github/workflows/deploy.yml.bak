@@ -1,7 +1,7 @@
 # Main entry point for our infrastructure automation
-
 name: 'Deployment & Testing'
-
+permissions:
+  contents: read
 
 # Define triggers for specific branches and pull requests
 on:
