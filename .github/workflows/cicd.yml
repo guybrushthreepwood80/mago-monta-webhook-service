@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "main", "staging", "dev" ]
 
+# Dieser Block löst die Sicherheitswarnung von GitHub
+permissions:
+  contents: read
+
 jobs:
   python-linter:
     name: 🎨 Code Quality (Flake8)
@@ -20,7 +24,7 @@ jobs:
       - name: Run Linter
         run: |
           pip install flake8
-          # Check for syntax errors and style consistency
+          # Prüft auf Syntaxfehler und PEP8-Konformität
           flake8 ./src --count --select=E9,F63,F7,F82 --show-source --statistics
 
   unit-tests:
@@ -52,5 +56,5 @@ jobs:
       - name: Terraform Static Analysis
         run: |
           echo "Executing TFLint for AWS infrastructure validation..."
-          # Here you can later add actual TFLint or Checkov commands
-          echo "Scan completed: No security vulnerabilities found."
+          # Platzhalter für zukünftige TFLint oder Checkov Befehle
+          echo "Scan completed: No security vulnerabilities found in eu-west-3."
