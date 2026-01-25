@@ -15,6 +15,13 @@ class DecimalEncoder(json.JSONEncoder):
             return float(obj)
         return super(DecimalEncoder, self).default(obj)
 
+# Hilfsklasse, um Decimal-Werte wieder in JSON für die Response umzuwandeln
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super(DecimalEncoder, self).default(obj)
+
 def lambda_handler(event, context):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
