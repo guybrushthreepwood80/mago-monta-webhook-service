@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "main", "staging", "dev" ]
 
-# Dieser Block löst die Sicherheitswarnung von GitHub
+# Secure the workflow by limiting GITHUB_TOKEN permissions
 permissions:
   contents: read
 
@@ -24,7 +24,7 @@ jobs:
       - name: Run Linter
         run: |
           pip install flake8
-          # Prüft auf Syntaxfehler und PEP8-Konformität
+          # Check for syntax errors and PEP8 compliance
           flake8 ./src --count --select=E9,F63,F7,F82 --show-source --statistics
 
   unit-tests:
@@ -56,5 +56,5 @@ jobs:
       - name: Terraform Static Analysis
         run: |
           echo "Executing TFLint for AWS infrastructure validation..."
-          # Platzhalter für zukünftige TFLint oder Checkov Befehle
+          # Placeholder for future TFLint or Checkov security scans
           echo "Scan completed: No security vulnerabilities found in eu-west-3."
