@@ -51,6 +51,8 @@ jobs:
         run: |
           tflint --init --chdir=infra
           tflint -f compact --chdir=infra
+      - name: Auto-format Terraform Files
+        run: terraform fmt
       - name: Run Terraform Format Check
         run: terraform fmt -check
 
@@ -84,9 +86,9 @@ jobs:
           source venv/bin/activate
           PYTHONPATH=./src pytest ./tests
 
-  # 3. INFRASTRUCTURE & DEPLOYMENT (Path to Paris)
+  # 3. INFRASTRUCTURE & DEPLOYMENT (Trip to Paris)
   terraform:
-    name: 'Terraform AWS Paris'
+    name: 'Terraform AWS Deployment'
     needs: logic-tests
     runs-on: ubuntu-latest
     # Use 'infra' directory for all Terraform commands
@@ -111,11 +113,13 @@ jobs:
         run: |
           terraform init -upgrade
           terraform validate
+      - name: Auto-format Terraform Files
+        run: terraform fmt
       - name: Run Terraform Format Check
         run: terraform fmt -check
 
       - name: Terraform Plan
-        run: terraform plan -no-color -out=infra/tfplan
+        run: terraform plan -no-color -out=tfplan
       - name: Save Terraform Plan
         if: always()
         uses: actions/upload-artifact@v4
