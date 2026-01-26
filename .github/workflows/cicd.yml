@@ -56,7 +56,7 @@ jobs:
       - name: Run Terraform Format Check
         run: terraform fmt -check
 
-  # 2. LOGIC TESTS (The "Showstopper" for the demo)
+  # 2. LOGIC TESTS (Unit Tests)
   logic-tests:
     name: 'Unit Tests (Pytest)'
     needs: quality-gate
