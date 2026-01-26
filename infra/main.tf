@@ -70,7 +70,7 @@ resource "aws_lambda_function" "webhook_lambda" {
   function_name = "MontaWebhookHandler"
   role          = aws_iam_role.iam_for_lambda.arn
 
-  handler = "monta_webhook_handler.lambda_handler"
+  handler_name = "monta_webhook_handler.lambda_handler"
 
 
   runtime = "python3.12"
